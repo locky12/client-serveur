@@ -1,0 +1,32 @@
+﻿    ## TODO List pour le Chat ##
+
+
+
+Fonctionnel:
+
+- Le server écoute le réseau sur le port 52000
+    
+- Le client se connecte au server
+    
+- Le client envoie un message sur le réseau
+    
+- le client saisit son message via STDIN
+
+
+
+
+A faire:
+    
+CLIENT: creer socket écoute du server
+    
+- Le client peut envoyer plusieurs messages sans se déconnecter
+    
+- Le Client choisit un pseudo
+    
+- Creation d'un type message <pseudo, texte>
+
+
+SERVER
+- Le serveur peut avoir plusieurs clients
+- Le serveur diffuse les messages aux utilisateurs
+    
