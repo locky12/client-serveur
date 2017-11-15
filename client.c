@@ -88,7 +88,7 @@ while(1)
 
 
     printf("message envoye\n");
-
+    memset( buffer_message, 0, sizeof( buffer_message ) );
   	taille_recue = recv( socket_connection, buffer_message, 127, 0);
 
   	if ( taille_recue == -1 ){
