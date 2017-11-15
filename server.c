@@ -86,7 +86,15 @@ int main(){
 		    ,	buffer_adresse
 		    ,	128 )
 		, adresse_client.sin_port);
-while(1)
+
+        /*  Je pense qu'il faudrait faire une fonction chat() qui tourne en boucle
+            Cette fonction serait appelée par un thread.
+            De cette manière, elle serait gérée indépendament des autres chat().
+            Ce serait donc un moyen d'avoir des chats simultanés.
+            Les threads étant avec des variables communes, aucun souci pour transferer
+            les messages des autres clients d'un thread à l'autre.                      */
+
+while(1==1)
 {
 	/* C'est plus propre, on ne sait pas à quoi ressemble le message    */
 	memset( buffer_message, 0, sizeof( buffer_message ) );
