@@ -94,8 +94,8 @@ int main(){
             Les threads étant avec des variables communes, aucun souci pour transferer
             les messages des autres clients d'un thread à l'autre.                      */
 
-while(1==1)
-{
+
+
 	/* C'est plus propre, on ne sait pas à quoi ressemble le message    */
 	memset( buffer_message, 0, sizeof( buffer_message ) );
 	taille_recue = recv( socket_client, buffer_message, 128, 0);
@@ -117,7 +117,7 @@ while(1==1)
   perror("send()");
   exit(-1);
     }
-  }
+  
 
 	/* A ne pas oublier */
 	close( socket_client );
