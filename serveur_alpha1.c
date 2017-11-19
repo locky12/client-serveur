@@ -31,23 +31,21 @@ void envoyer_client(int socket_client,char *buffer_message)
         exit(-1);
     }
 }
-void lire_et_renvoyer_client(int *client,int client_parle ,char *buffer,int n)
+void renvoyer_client(int *client,int client_parle ,char *buffer,int n)
 {
 
-    char		buffer_message[128];
+
     int i;
-    ssize_t	 taille_recue;
-    printf(  "Message reçu (taille %ld): \n[%s]\n"
-    , taille_recue
-    , buffer_message );
-    taille_recue = lire_client(client[i],buffer);
+
+
     for ( i = 0; i < n; i++)
     {
       if (client[i] != client_parle)
       {
       envoyer_client(client[i],buffer);
-    }
+      }
   }
+
 }
 
 
@@ -185,23 +183,25 @@ printf("socket ecoude : %d  \n",socket_ecoute);
                     if (FD_ISSET(socket_client[i], &rd))// si un client demande à parler.
 
                     {
-
+                        memset(buffer_message,'\0',sizeof(buffer_message));
                         int client_parle = socket_client[i];
                         taille_recue = lire_client(socket_client[i],buffer_message);
+                        printf(  "Message reçu (taille %ld):/n %s\n"
+                        , taille_recue
+                        , buffer_message );
 
 
-
-                        //lire_et_renvoyer_client(socket_client,client,buffer_message,nbrCLIENT);
+                        renvoyer_client(socket_client,client_parle,buffer_message,nbrCLIENT);
 
                         //else {perror(recv());}
 
-                        for ( i = 0; i < nbrCLIENT; i++)
-                        {
-                          if (socket_client[i] != client_parle)
-                          {
-                          envoyer_client(socket_client[i],buffer_message);
-                          }
-                      }
+                      //   for ( i = 0; i < nbrCLIENT; i++)
+                      //   {
+                      //     if (socket_client[i] != client_parle)
+                      //     {
+                      //     envoyer_client(socket_client[i],buffer_message);
+                      //     }
+                      // }
                     }
                 }
             }

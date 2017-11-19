@@ -83,25 +83,29 @@ int main (int argc, char *argv[])
 	    , adresse_serveur.sin_port);
       printf("Pseudo : " );
       fgets(buffer_nom,150,stdin );
-     //  buffer_nom[strlen(buffer_nom)-1]= '\0';
-      //strcat(buffer_nom,espace);
-      buffer_nom[strlen(buffer_nom)-1] = ' ';
+      buffer_nom[strlen(buffer_nom)-1]= '\0';
+      strcat(buffer_nom,espace);
+    /*  buffer_nom[strlen(buffer_nom)-1] = ' ';
       buffer_nom[strlen(buffer_nom)] = '\0';
       buffer_nom[strlen(buffer_nom)+1] = ' ';
       //buffer_nom[strlen(buffer_nom)+2] = ' ';
+*/
 
 
 
 while(1)
 {
     /* Saisie */
+
+    memset(&buffer_message,'\0',sizeof(buffer_message));
     memset(&buffer,'\0',sizeof(buffer));
-    strcat(buffer,buffer_nom);
     FD_ZERO(&rd);
     FD_SET(STDIN_FILENO,&rd);
     FD_SET(socket_connection,&rd);
     select(socket_connection + 1,&rd,0,0,0);
     if (FD_ISSET(STDIN_FILENO,&rd)){
+
+    strcat(buffer,buffer_nom);
     saisie(buffer);
 
 
@@ -124,7 +128,7 @@ if (FD_ISSET(socket_connection,&rd)) {
   	    perror ("recv()" );
   	    exit( -1 );
   	}
-    printf(  " %s :", buffer_message );
+    printf(  "%s", buffer_message );
     }
   }
     close(socket_connection);
