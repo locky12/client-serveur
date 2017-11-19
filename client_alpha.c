@@ -14,7 +14,9 @@
 
 #define TAILLE_SAISIE 128
 
- void saisie(char *buffer,char *nom){
+ void saisie(char *nom){
+     char buffer[128];
+     memset(&buffer,'\0',sizeof(buffer));
      fgets(buffer,TAILLE_SAISIE,stdin);
      strcat(nom,buffer);
  }
@@ -22,13 +24,14 @@ int main (int argc, char *argv[])
 {
     int socket_connection;
     struct sockaddr_in adresse_serveur;
-    char buffer_addresse[500];
+    char buffer_addresse[20];
     ssize_t taille_envoyee;
     char buffer_message[128];
     ssize_t taille_recue;
     fd_set rd;
     char buffer_nom[150];
     char espace[4] = " : ";
+    char buffer[200];
 
 
 
@@ -80,23 +83,30 @@ int main (int argc, char *argv[])
 	    , adresse_serveur.sin_port);
       printf("Pseudo : " );
       fgets(buffer_nom,150,stdin );
-      buffer_nom[strlen(buffer_nom)-1]= '\0';
-      strcat(buffer_nom,espace);
+     //  buffer_nom[strlen(buffer_nom)-1]= '\0';
+      //strcat(buffer_nom,espace);
+      buffer_nom[strlen(buffer_nom)-1] = ' ';
+      buffer_nom[strlen(buffer_nom)] = '\0';
+      buffer_nom[strlen(buffer_nom)+1] = ' ';
+      //buffer_nom[strlen(buffer_nom)+2] = ' ';
 
 
 
 while(1)
 {
     /* Saisie */
+    memset(&buffer,'\0',sizeof(buffer));
+    strcat(buffer,buffer_nom);
     FD_ZERO(&rd);
     FD_SET(STDIN_FILENO,&rd);
     FD_SET(socket_connection,&rd);
     select(socket_connection + 1,&rd,0,0,0);
     if (FD_ISSET(STDIN_FILENO,&rd)){
-    saisie(buffer_saisie,buffer_nom);
+    saisie(buffer);
 
 
-    taille_envoyee = send( socket_connection, buffer_nom, strlen(buffer_nom), 0);
+
+    taille_envoyee = send( socket_connection, buffer, strlen(buffer), 0);
     if (taille_envoyee == -1)
     {
 	perror("send()");

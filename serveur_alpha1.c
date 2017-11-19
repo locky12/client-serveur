@@ -13,7 +13,7 @@ int lire_client(int socket_client, char *buffer_message)
 
 
     ssize_t		taille_recue;
-    memset( buffer_message, 0, sizeof( buffer_message ) );
+    memset( buffer_message, '\0', sizeof( buffer_message ) );
     taille_recue = recv( socket_client, buffer_message, 128, 0);
 
     if ( taille_recue == -1 ){
@@ -81,7 +81,7 @@ int connection ()
     * 0.0.0.0 = "écoute sur n'importe quelle IP de la machine"
     * Comment ça "N'importe quelle IP de la machine ?????		 */
     adresse_ecoute.sin_addr.s_addr = 0;
-
+  //  inet_pton (AF_INET, "93.29.84.53", &(adresse_ecoute.sin_addr.s_addr));
     /* On lie la socket à l'adresse qu'on vient de configurer avec bind();  */
     if(	bind(
         socket_ecoute,
@@ -122,6 +122,8 @@ void serveur1()
     int socket;
     int c;
     int client;
+    char quitter[] = "exit";
+    char sort[10];
 
     /* On traite nos clients dans une boucle infinie */
     while( 1 ){
@@ -141,7 +143,12 @@ printf("socket ecoude : %d  \n",socket_ecoute);
 
         if (FD_ISSET(STDIN_FILENO, &rd)) //test si on a une entree clavier
         {
+            fgets(sort,10,stdin);
+            sort[strlen(sort)-1]= '\0';
+            if(strcmp(sort,quitter)==0)
+            {
             break;// on quitte si on appuies sur n'importe quel touche
+            }
         }
         else if (FD_ISSET(socket_ecoute, &rd))// test si le socket ecoute à changer
         {
@@ -175,7 +182,7 @@ printf("socket ecoude : %d  \n",socket_ecoute);
             {
                 for ( i = 0; i < nbrCLIENT; i++)// on boucle tout les clients
                 {
-                    if (FD_ISSET(socket_client[i], &rd))// on verifie les descripteur
+                    if (FD_ISSET(socket_client[i], &rd))// si un client demande à parler.
 
                     {
 
