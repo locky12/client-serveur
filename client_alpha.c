@@ -1,4 +1,5 @@
   //test git
+/* Ok Je suis là */
 
   #include <stdio.h>
   #include <stdlib.h>
@@ -105,8 +106,13 @@
          {
 
          saisie(buffer_saisie);
-
          ecrire_serveur(socket_connection,buffer_saisie);
+         if(strcmp(buffer_saisie,"exit\n")==0)
+         {
+           close(socket_connection);
+         }
+
+
 
        }
          //
@@ -116,9 +122,14 @@
          perror("recv()");
          exit -1;
        }
-
-
+       if(strcmp(buffer_message,"Le serveur est offline\n")==0)
+       {
          printf(" %s", buffer_message );
+         close(socket_connection);
+         exit(-1);
+       }
+       else {printf(" %s", buffer_message );}
+
          }
        }
          close(socket_connection);

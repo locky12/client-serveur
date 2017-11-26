@@ -16,7 +16,31 @@ typedef struct
   int numclient;
   pthread_t thread_id;
 }Client;
+void deconnection_C (Client *sock_client, int numclient, int n){//fonction qui prend le numéro du clients
+                                              // et qui le deconnecte et déplace les autres clients dans le tableau
+  int i;
+  close(sock_client[numclient].sock);
+  if(numclient != n-1){
+    for(i= numclient ; i<n-1; i++ )
+    {
+        sock_client[i] = sock_client[i+1];
 
+    }
+    n--;
+}
+}
+
+void deco_tt_clients(Client *sock_client,int n)//déconnecte tout les clients
+{
+  int i;
+  for(i= n;i>-1;i--){
+    close(sock_client[i].sock);
+  }
+}
+void deco_serveur(SOCKET socket_serveur)// déconnecte le serveur
+{
+  close(socket_serveur);
+}
 int lire_client(SOCKET socket_client, char *buffer_message)
 {
 
@@ -59,6 +83,18 @@ void renvoyer_client(Client *client,Client client_parle ,char *buffer,int n)
       }
   }
 }
+
+void renvoyer_client2(Client *client,char *buffer,int n)
+
+{
+
+    int i;
+
+    for ( i = 0; i < n; i++)
+    {
+      envoyer_client(client[i].sock,buffer);
+    }
+  }
 
 // void *thread_envoier(void *socket)
 // {
@@ -175,7 +211,12 @@ printf("socket ecoude : %d  \n",socket_ecoute);
             sort[strlen(sort)-1]= '\0';
             if(strcmp(sort,quitter)==0)
             {
-            break;// on quitte si on appuies sur n'importe quel touche
+            char buffer_exit[] = "Le serveur est offline\n";
+            renvoyer_client2(socket_client,buffer_exit,nbrCLIENT);
+            //sleep(5);
+            deco_tt_clients(socket_client,nbrCLIENT);
+            deco_serveur(socket_ecoute);
+            exit(-1);
             }
         }
         else if (FD_ISSET(socket_ecoute, &rd))// test si le socket ecoute à changer
@@ -228,6 +269,13 @@ printf("socket ecoude : %d  \n",socket_ecoute);
                         memset(buffer_message,'\0',sizeof(buffer_message));
                         Client client_parle = socket_client[i];
                         taille_recue = lire_client(socket_client[i].sock,buffer_message);
+                        if(strcmp(buffer_message,"exit\n")==0)
+                        {
+                          puts("je vais deconnecté un client");
+                          memset(buffer_message,'\0',sizeof(buffer_message));
+                          char buffer_message[] = "un client c'est déconnecté";
+                          deconnection_C(socket_client,i,nbrCLIENT);
+                        }
                         printf(  "Message reçu (taille %ld): \n %s\n"
                         , taille_recue
                         , buffer_message );
@@ -294,10 +342,6 @@ printf("socket ecoude : %d  \n",socket_ecoute);
             }
         }
 
-        void deconnection(int sock_client)
-        {
-            close(sock_client);
-        }
 
 int main() {
     serveur1();
