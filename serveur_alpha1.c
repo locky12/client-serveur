@@ -7,8 +7,17 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include<pthread.h>
+typedef  int SOCKET;
+typedef struct
+{
+  SOCKET sock;
+  char pseudo[20];
+  int numclient;
+  pthread_t thread_id;
+}Client;
 
-int lire_client(int socket_client, char *buffer_message)
+int lire_client(SOCKET socket_client, char *buffer_message)
 {
 
 
@@ -21,7 +30,7 @@ int lire_client(int socket_client, char *buffer_message)
         exit( -1 );
     }
 }
-void envoyer_client(int socket_client,char *buffer_message)
+void envoyer_client(SOCKET socket_client,char *buffer_message)
 {
     int taille_envoyee;
     taille_envoyee = send( socket_client, buffer_message, strlen(buffer_message), 0);
@@ -31,24 +40,42 @@ void envoyer_client(int socket_client,char *buffer_message)
         exit(-1);
     }
 }
-void renvoyer_client(int *client,int client_parle ,char *buffer,int n)
+void renvoyer_client(Client *client,Client client_parle ,char *buffer,int n)
+
 {
 
-
     int i;
-
+    char message[500];
 
     for ( i = 0; i < n; i++)
     {
-      if (client[i] != client_parle)
+      if (client[i].sock != client_parle.sock)
       {
-      envoyer_client(client[i],buffer);
+      strncpy(message,client_parle.pseudo,sizeof(message));
+      strncat(message, " : ",sizeof(message));
+      strncat(message,buffer,sizeof(message));
+      envoyer_client(client[i].sock,message);
+
       }
   }
-
 }
 
+// void *thread_envoier(void *socket)
+// {
+//
+//   int nbrCLIENT = sizeof((int*)socket);
+//   int *socket_client = calloc(nbrCLIENT,sizeof(int));
+//   memcpy(socket_client,(int*)socket,nbrCLIENT);
+//   memset(buffer_message,'\0',sizeof(buffer_message));
+//   int client_parle = socket_client[i];
+//   int taille_recue = lire_client(socket_client[i],buffer_message);
+//   printf(  "Message reçu (taille %ld):/n %s\n"
+//   , taille_recue
+//   , buffer_message );
+//
 
+//   renvoyer_client(socket_client,client_parle,buffer_message,nbrCLIENT);
+// }
 int connection ()
 {
 
@@ -103,8 +130,9 @@ int connection ()
 /* Fonction qui gere les connections / transmission de message */
 void serveur1()
 {
+    //pthread_t thread_id;
     int socket_ecoute = connection();// variable qui prend le socket d'ecoute.
-    int			socket_client[10];			/* Socket pour traiter le client */
+			Client socket_client[10]; //calloc(1,sizeof(int));			/* Socket pour traiter le client */
     int max = socket_ecoute;
     struct sockaddr_in	adresse_client;			/* Adresse du client connecte */
     char		buffer_adresse[128];		/* Buffer pour l'adresse du client */
@@ -114,7 +142,7 @@ void serveur1()
     int taille_envoyee;
     fd_set rd;
     taille = sizeof( struct sockaddr_in );
-    char buffer_message[128];       /* Buffer pour mettre le message reçu et l'afficher */
+    char buffer_message[500];       /* Buffer pour mettre le message reçu et l'afficher */
     int i = 0;
     int nbrCLIENT = 0;
     int socket;
@@ -122,6 +150,8 @@ void serveur1()
     int client;
     char quitter[] = "exit";
     char sort[10];
+    char buffer_nom[21];
+    char buffer[21];
 
     /* On traite nos clients dans une boucle infinie */
     while( 1 ){
@@ -131,7 +161,7 @@ printf("socket ecoude : %d  \n",socket_ecoute);
         FD_SET(socket_ecoute,&rd);// initialise le descripteur avec le socket écoute
         for ( i = 0; i < nbrCLIENT; i++)// boucle qui gère les client
         {
-            FD_SET(socket_client[i],&rd);//pour chaque client on initialise le fichier descripteur
+            FD_SET(socket_client[i].sock,&rd);//pour chaque client on initialise le fichier descripteur
         }
         if (select(max + 1,&rd,NULL,NULL,NULL ) == -1)//on test l'ensemble des descripteur en lecture
         {
@@ -157,11 +187,17 @@ printf("socket ecoude : %d  \n",socket_ecoute);
             socket =  accept(    socket_ecoute
                 ,   (struct sockaddr *) &adresse_client
                 ,   &taille1);
+
+
                 if ( socket== -1 ){
                     perror( "accept()" );//accepte renvoie un descripteur
                     exit( -1 );
                 }
+                lire_client(socket,buffer_nom);
+                printf("%s \n",buffer_nom);
+                //socket_client = realloc(socket_client,nbrCLIENT * sizeof(int));
                   max = socket > max ? socket : max;
+                //  if (max < socket) {max = socket;}
                   printf(	    "Un client s'est connecté ... %s : %d\n"
                   ,   inet_ntop(	AF_INET
                       ,	&(adresse_client.sin_addr)
@@ -171,37 +207,45 @@ printf("socket ecoude : %d  \n",socket_ecoute);
 
 
 
+
                 FD_SET(socket, &rd);// on zjoute socket dans rd
-              //  c =  csock ;
-                socket_client[nbrCLIENT] = socket;// le nombre de client est égales on nombre de descripteur dans l'ensemble
-                nbrCLIENT++;
+                Client c = { socket };
+                strncpy(c.pseudo,buffer_nom,sizeof(buffer_nom));
+                socket_client[nbrCLIENT] = c;// le nombre de client est égales on nombre de descripteur dans l'ensemble
+                // Client num.numclient = nbrCLIENT;//Servira peut être pour les threads;
+                nbrCLIENT ++;
+
+
             }
             else // si y a pas de demande de connection
             {
                 for ( i = 0; i < nbrCLIENT; i++)// on boucle tout les clients
                 {
-                    if (FD_ISSET(socket_client[i], &rd))// si un client demande à parler.
+                    if (FD_ISSET(socket_client[i].sock, &rd))// si un client demande à parler.
 
                     {
+
                         memset(buffer_message,'\0',sizeof(buffer_message));
-                        int client_parle = socket_client[i];
-                        taille_recue = lire_client(socket_client[i],buffer_message);
-                        printf(  "Message reçu (taille %ld):/n %s\n"
+                        Client client_parle = socket_client[i];
+                        taille_recue = lire_client(socket_client[i].sock,buffer_message);
+                        printf(  "Message reçu (taille %ld): \n %s\n"
                         , taille_recue
                         , buffer_message );
 
 
                         renvoyer_client(socket_client,client_parle,buffer_message,nbrCLIENT);
 
-                        //else {perror(recv());}
 
-                      //   for ( i = 0; i < nbrCLIENT; i++)
-                      //   {
-                      //     if (socket_client[i] != client_parle)
-                      //     {
-                      //     envoyer_client(socket_client[i],buffer_message);
-                      //     }
-                      // }
+
+
+                       // for ( i = 0; i < nbrCLIENT; i++)
+                       //  {
+                       //    if (socket_client[i].sock != client_parle.sock)
+                       //    {
+                       //   envoyer_client(socket_client[i].sock,buffer_message);
+                       //
+                       //     }
+                       // }
                     }
                 }
             }
